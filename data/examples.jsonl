@@ -1,0 +1,3 @@
+{"id":"routing-001","group_id":"damaged-order","task":"routing","state":"My order arrived with a cracked screen.","question":"Which department should handle this?","options":["Returns","Billing","Sales"],"target_index":0}
+{"id":"evidence-001","group_id":"damaged-order","task":"evidence","state":"My order arrived with a cracked screen.","question":"Does the text report physical damage?","options":["Yes","No"],"target_index":0}
+{"id":"criterion-001","group_id":"refund-request","task":"criterion","state":"Please return my payment for the cancelled order.","question":"Does the customer request a refund?","options":["Yes","No"],"target_index":0}
