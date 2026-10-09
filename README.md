@@ -10,6 +10,7 @@ typed decisions. **Not a Jev reproduction. No trained model is included yet.**
 - Optional PyTorch encoder + shared scoring-head skeleton.
 - Example labeled data and unit tests.
 - Strict JSONL loading, deterministic group-disjoint splitting, and evaluation metrics.
+- Offline SNLI ZIP adapter with explicit labels, official splits, and provenance.
 - No training, weight downloads, GPU configuration, API, or dashboard yet.
 
 ## Run on Windows without installing dependencies
@@ -54,7 +55,7 @@ not automatically calibrated. New question support must be tested explicitly.
 
 ## Next milestones
 
-1. Choose and prepare a real, licensed dataset (the pipeline is ready).
+1. Prepare SNLI locally with the adapter (no training).
 2. Tokenization and CPU-compatible inference adapter.
 3. Local API and dashboard.
 4. Optional training and calibration, only when explicitly requested.
@@ -96,3 +97,16 @@ The curve explores top-probability thresholds separately from actual predictor
 abstentions, whose coverage/error rate appears under `policy`. With zero acted
 examples, policy error is `null`, not zero. Never choose a deployment threshold on
 the test set. Mock ECE can look good by coincidence: it is not model intelligence.
+
+## First real dataset: SNLI
+
+The initial task is passage-conditioned claim verification: Supported,
+Contradicted, or Not enough information. The offline SNLI adapter reads the
+official local ZIP, preserves train/dev/test membership, excludes unlabeled
+pairs, and selects up to 20,000 training rows in complete source groups by
+default. It records source/output hashes, labels, counts, and cross-split overlap
+audits; it does not silently remove overlap or claim perfect leakage prevention.
+
+See [data/SNLI.md](data/SNLI.md) for the source, attribution, license,
+preparation command, and evaluation limitations. **The dataset has not been
+downloaded or prepared yet, and no model has been trained.**

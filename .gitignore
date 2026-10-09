@@ -8,3 +8,5 @@ dist/
 checkpoints/
 runs/
 .env
+data/raw/
+data/processed/
