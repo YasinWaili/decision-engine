@@ -108,5 +108,8 @@ default. It records source/output hashes, labels, counts, and cross-split overla
 audits; it does not silently remove overlap or claim perfect leakage prevention.
 
 See [data/SNLI.md](data/SNLI.md) for the source, attribution, license,
-preparation command, and evaluation limitations. **The dataset has not been
-downloaded or prepared yet, and no model has been trained.**
+preparation command, and evaluation limitations. SNLI has been downloaded and
+prepared locally under `data/processed/snli-20k` (Git-ignored). See
+[data/SNLI_PREPARATION.md](data/SNLI_PREPARATION.md) for counts and overlap findings.
+**No model has been trained.** A fresh clone must obtain and prepare its own
+dataset copy using the documented command.
