@@ -87,7 +87,10 @@ class CandidateCollator:
                         truncation="only_first", max_length=self.max_length,
                         return_attention_mask=True,
                     )
-                except (ValueError, RuntimeError) as error:
+                except Exception as error:
+                    # Rust-backed fast tokenizers raise plain Exception for an
+                    # impossible only_first truncation. Normalize errors only
+                    # at this external tokenizer-call boundary for CLI callers.
                     raise ValueError(f"Request {request_index}, option {option!r}: {error}") from error
                 ids = list(result["input_ids"])
                 mask = list(result["attention_mask"])

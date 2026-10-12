@@ -57,7 +57,7 @@ not automatically calibrated. New question support must be tested explicitly.
 ## Next milestones
 
 1. Prepare SNLI locally with the adapter (no training).
-2. Verify batching with a real tokenizer, then add the CPU-compatible inference adapter.
+2. Set up a compatible PyTorch environment and add the inference adapter (no training yet).
 3. Local API and dashboard.
 4. Optional training and calibration, only when explicitly requested.
 
@@ -130,9 +130,11 @@ evidence: token length and truncation effects still require real-data evaluation
 The batch's `to_torch()` converts model inputs explicitly, defaulting to CPU;
 targets are returned separately by `targets_to_torch()` for a future loss function.
 
-Structural tests use an explicitly fake tokenizer and download nothing. They
-do not establish compatibility with an actual pretrained tokenizer. To preview
-with a real tokenizer later, use a virtual environment and the optional extra:
+Structural tests use an explicitly fake tokenizer and download nothing. Optional
+integration tests also verify the real cached DistilBERT tokenizer without network
+access. The local environment has been installed and the prepared SNLI data has
+passed real-tokenizer batching; see [data/TOKENIZATION_REPORT.md](data/TOKENIZATION_REPORT.md).
+For a fresh clone, use a virtual environment and the optional extra:
 
 ```powershell
 python -m venv .venv
@@ -145,5 +147,5 @@ The explicit `--allow-download` allows tokenizer files only. Without that flag,
 loading is restricted to a local path/cache. The default preview tokenizer is
 `distilbert/distilbert-base-uncased`, a candidate for our initial encoder, not yet
 a final trained-model choice. This command downloads no model weights and runs
-no predictions or training. Transformers/PyTorch have not been installed by this
-coding step; PyTorch tensor/model tests remain optional until setup is authorized.
+no predictions or training. Transformers is installed locally in `.venv`, but
+PyTorch is not. Tensor/model tests remain optional until model setup is authorized.
