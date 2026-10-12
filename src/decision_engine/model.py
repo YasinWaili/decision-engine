@@ -64,3 +64,25 @@ def probabilities_from_logits(logits: torch.Tensor, temperature: float = 1.0) ->
     if not math.isfinite(temperature) or temperature <= 0:
         raise ValueError("temperature must be finite and positive")
     return torch.softmax(logits / temperature, dim=-1)
+
+
+def load_untrained_scorer(
+    name_or_path: str = "distilbert/distilbert-base-uncased",
+    allow_download: bool = False,
+    head_seed: int = 42,
+) -> CandidateScorer:
+    """Pretrained encoder + random decision head on CPU, in eval mode.
+
+    This is a wiring test, NOT a trained decision model. Downloading is opt-in,
+    remote code is disabled, and only safetensors model weights are accepted.
+    """
+    from transformers import AutoModel
+
+    with torch.random.fork_rng(devices=[]):
+        torch.manual_seed(head_seed)
+        encoder = AutoModel.from_pretrained(
+            name_or_path, local_files_only=not allow_download,
+            trust_remote_code=False, use_safetensors=True,
+        )
+        model = CandidateScorer(encoder, encoder.config.hidden_size)
+    return model.cpu().eval()

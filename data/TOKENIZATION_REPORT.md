@@ -44,7 +44,8 @@ the optional dependency or cached tokenizer is unavailable. They cover real
 variable-option padding, preservation of the second segment under passage
 truncation, and rejection of oversized questions.
 
-PyTorch/model integration tests still skip until a compatible PyTorch environment
-is installed. Successful tokenization alone does not verify model inference or
+At this tokenizer-verification milestone, PyTorch/model integration tests skipped
+because PyTorch was not installed. The subsequent CPU setup is documented in
+[MODEL_SETUP_REPORT.md](MODEL_SETUP_REPORT.md). Tokenization alone does not verify model inference or
 the AMD GPU training stack. Dependency versions here record this verification,
 not a complete locked environment or a promise of GPU compatibility.

@@ -12,6 +12,7 @@ typed decisions. **Not a Jev reproduction. No trained model is included yet.**
 - Strict JSONL loading, deterministic group-disjoint splitting, and evaluation metrics.
 - Offline SNLI ZIP adapter with explicit labels, official splits, and provenance.
 - Candidate tokenization/batching with variable-option masks and optional PyTorch conversion.
+- Verified CPU encoder forward pass with a clearly untrained decision head.
 - No training, weight downloads, GPU configuration, API, or dashboard yet.
 
 ## Run on Windows without installing dependencies
@@ -57,7 +58,7 @@ not automatically calibrated. New question support must be tested explicitly.
 ## Next milestones
 
 1. Prepare SNLI locally with the adapter (no training).
-2. Set up a compatible PyTorch environment and add the inference adapter (no training yet).
+2. Decide the overlap/calibration split protocol, then implement opt-in training/checkpoint code.
 3. Local API and dashboard.
 4. Optional training and calibration, only when explicitly requested.
 
@@ -147,5 +148,22 @@ The explicit `--allow-download` allows tokenizer files only. Without that flag,
 loading is restricted to a local path/cache. The default preview tokenizer is
 `distilbert/distilbert-base-uncased`, a candidate for our initial encoder, not yet
 a final trained-model choice. This command downloads no model weights and runs
-no predictions or training. Transformers is installed locally in `.venv`, but
-PyTorch is not. Tensor/model tests remain optional until model setup is authorized.
+no predictions or training. Transformers and CPU-only PyTorch are installed
+locally in `.venv`. All 36 tests pass, including cached real-encoder integration.
+
+## CPU forward-pass preview
+
+The pretrained DistilBERT encoder is now cached locally. It is connected to a
+randomly initialized scoring head for wiring tests, **not meaningful decisions**.
+`load_untrained_scorer()` defaults to local-cache loading, CPU, and eval mode;
+it accepts safetensors weights only and does not enable remote code.
+
+```powershell
+.\.venv\Scripts\python.exe -m decision_engine.preview_model data/processed/snli-20k/train.jsonl
+```
+
+The preview uses inference mode, prints shape/probability-sum diagnostics, and
+does not train or save a checkpoint. Model-weight downloads require the explicit
+`--allow-download` flag. See [data/MODEL_SETUP_REPORT.md](data/MODEL_SETUP_REPORT.md)
+for installation, verification results, and the distinction between this CPU
+environment and a future AMD GPU training environment.
