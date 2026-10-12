@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
+tokenization = ["transformers>=4.40,<5"]
 model = ["torch>=2.2", "transformers>=4.40,<5"]
 
 [project.scripts]

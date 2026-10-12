@@ -21,6 +21,7 @@ class CandidateScorer(nn.Module):
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor,
         option_mask: torch.Tensor,
+        token_type_ids: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Score tokenized candidates.
 
@@ -37,12 +38,17 @@ class CandidateScorer(nn.Module):
             raise ValueError("Each example needs at least two valid options")
         if torch.any(attention_mask.sum(dim=-1)[option_mask] == 0):
             raise ValueError("Real candidates must contain at least one token")
+        if token_type_ids is not None and token_type_ids.shape != input_ids.shape:
+            raise ValueError("token_type_ids must match input_ids shape")
 
         # Exclude padded candidates from the encoder entirely.
         valid = option_mask.reshape(-1)
         ids = input_ids.reshape(batch * options, tokens)[valid]
         mask = attention_mask.reshape(batch * options, tokens)[valid]
-        hidden = self.encoder(input_ids=ids, attention_mask=mask).last_hidden_state
+        encoder_inputs = {"input_ids": ids, "attention_mask": mask}
+        if token_type_ids is not None:
+            encoder_inputs["token_type_ids"] = token_type_ids.reshape(batch * options, tokens)[valid]
+        hidden = self.encoder(**encoder_inputs).last_hidden_state
         weights = mask.unsqueeze(-1).to(hidden.dtype)
         pooled = (hidden * weights).sum(dim=1) / weights.sum(dim=1).clamp_min(1)
         scores = self.scoring_head(pooled).squeeze(-1)

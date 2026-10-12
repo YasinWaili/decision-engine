@@ -34,3 +34,24 @@ class ModelTests(unittest.TestCase):
         loss = torch.nn.functional.cross_entropy(logits, torch.tensor([0, 1]))
         loss.backward()
         self.assertIsNotNone(model.scoring_head.weight.grad)
+
+    def test_collator_connects_to_encoder(self):
+        from decision_engine.batching import CandidateCollator
+        from decision_engine.model import CandidateScorer
+        from decision_engine.schemas import DecisionRequest
+        from test_batching import FakeTokenizer
+
+        class TinyEncoder(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.embedding = torch.nn.Embedding(32, 8)
+
+            def forward(self, input_ids, attention_mask, token_type_ids=None):
+                return SimpleNamespace(last_hidden_state=self.embedding(input_ids))
+
+        requests = [DecisionRequest("state", "question", ("A", "B")),
+                    DecisionRequest("state", "question", ("A", "B", "C"))]
+        batch = CandidateCollator(FakeTokenizer(with_types=True)).requests(requests)
+        logits = CandidateScorer(TinyEncoder(), 8)(**batch.to_torch())
+        self.assertEqual(tuple(logits.shape), (2, 3))
+        self.assertTrue(torch.isneginf(logits[0, 2]))
