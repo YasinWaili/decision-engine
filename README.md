@@ -13,7 +13,8 @@ typed decisions. **Not a Jev reproduction. No trained model is included yet.**
 - Offline SNLI ZIP adapter with explicit labels, official splits, and provenance.
 - Candidate tokenization/batching with variable-option masks and optional PyTorch conversion.
 - Verified CPU encoder forward pass with a clearly untrained decision head.
-- No training, weight downloads, GPU configuration, API, or dashboard yet.
+- Separate selection/calibration protocol, safetensors checkpoints, and dry-run-first training code.
+- Pretrained encoder weights are cached; no real-data training, GPU configuration, API, or dashboard yet.
 
 ## Run on Windows without installing dependencies
 
@@ -35,8 +36,8 @@ the candidates. Softmax normalizes the scores across the options in each request
 The scoring head starts randomly initialized and needs training.
 
 `model.py` accepts an encoder supplied by the caller; importing it does not load
-a pretrained model. Trained-checkpoint loading, training, and real
-inference adapters are future work. Candidate scoring can be batched but is not
+a pretrained model. Checkpoint save/load and opt-in training code are implemented;
+calibration and trained-inference adapters are future work. Candidate scoring can be batched but is not
 one shared state-encoding pass, and does not reproduce Jev's architecture.
 
 PyTorch and Transformers are optional dependencies. Do not install the model
@@ -57,10 +58,10 @@ not automatically calibrated. New question support must be tested explicitly.
 
 ## Next milestones
 
-1. Prepare SNLI locally with the adapter (no training).
-2. Decide the overlap/calibration split protocol, then implement opt-in training/checkpoint code.
-3. Local API and dashboard.
-4. Optional training and calibration, only when explicitly requested.
+1. Authorize a small real training benchmark and select a full-training setup.
+2. Fit calibration and build the trained-checkpoint inference adapter.
+3. Evaluate baselines and fixed settings on the chosen test protocol.
+4. Local API and dashboard.
 
 ## Data and evaluation pipeline
 
@@ -149,7 +150,7 @@ loading is restricted to a local path/cache. The default preview tokenizer is
 `distilbert/distilbert-base-uncased`, a candidate for our initial encoder, not yet
 a final trained-model choice. This command downloads no model weights and runs
 no predictions or training. Transformers and CPU-only PyTorch are installed
-locally in `.venv`. All 36 tests pass, including cached real-encoder integration.
+locally in `.venv`. Tests include cached real-encoder integration.
 
 ## CPU forward-pass preview
 
@@ -167,3 +168,26 @@ does not train or save a checkpoint. Model-weight downloads require the explicit
 `--allow-download` flag. See [data/MODEL_SETUP_REPORT.md](data/MODEL_SETUP_REPORT.md)
 for installation, verification results, and the distinction between this CPU
 environment and a future AMD GPU training environment.
+
+## Pre-training code and checkpoints
+
+The derived `data/processed/snli-protocol-v1` data contains 18,745 training,
+4,945 model-selection, and 4,897 calibration examples. Training groups that
+overlap development are excluded from this copy, and development source groups
+and repeated premises stay together across selection/calibration allocation.
+Original exports/test data remain unchanged. Original test overlap limitations
+still apply; see [data/TRAINING_PROTOCOL.md](data/TRAINING_PROTOCOL.md).
+
+This command is safe to run: **it only prints a plan**.
+
+```powershell
+.\.venv\Scripts\python.exe -m decision_engine.train --protocol data/processed/snli-protocol-v1 --output runs/first-training --max-steps 10
+```
+
+Training requires the explicit `--run-training` flag. It is CPU-only for now,
+does not use calibration/test labels, and writes versioned safetensors
+checkpoints selected by model-selection NLL. `--max-steps` limits updates, not
+full model-selection evaluation. `checkpoint.py` supports local save/load of
+encoder, tokenizer, and scoring head without pickle; exact optimizer resume and
+calibration persistence are not yet implemented. Updated weights are not proof
+of accuracy or calibration. **No SNLI/pretrained-model training has been run.**
